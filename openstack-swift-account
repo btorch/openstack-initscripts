@@ -1,0 +1,72 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          openstack-swift-account-server
+# Required-Start:    $remote_fs
+# Required-Stop:     $remote_fs
+# Default-Start:     3 5
+# Default-Stop:      0 1 6
+# Short-Description: Swift account server
+# Description:       Account server for swift.
+### END INIT INFO
+
+# openstack-swift-account: swift account server
+#
+# chkconfig: - 20 80
+# description: Account server for swift.
+
+. /etc/rc.status
+#. /usr/share/openstack-swift/functions
+
+name="account-server"
+
+[ -e "/etc/sysconfig/openstack-swift-$name" ] && . "/etc/sysconfig/openstack-swift-$name"
+
+lockfile="/var/lock/subsys/openstack-swift-$name"
+
+start() {
+    swift-init "$name" start
+    retval=$?
+    [ $retval -eq 0 ] && touch $lockfile
+    return $retval
+}
+
+stop() {
+    swift-init "$name" stop
+    retval=$?
+    [ $retval -eq 0 ] && rm -f $lockfile
+    return $retval
+}
+
+restart() {
+    stop
+    start
+}
+
+
+mkvarrun() {
+    test -d /var/run/swift         || mkdir /var/run/swift
+    test -d /var/run/swift/${name} || mkdir /var/run/swift/${name}
+}
+
+mkvarrun
+
+case "$1" in
+    start)
+        $1
+        ;;
+    stop)
+        $1
+        ;;
+    restart)
+        $1
+        ;;
+    reload)
+        ;;
+    status)
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart}"
+        exit 2
+esac
+exit $?
